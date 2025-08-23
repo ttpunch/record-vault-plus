@@ -1,0 +1,157 @@
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { CalendarIcon, Save, X } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+
+interface RecordFormProps {
+  onSuccess?: () => void;
+  onCancel?: () => void;
+  initialData?: {
+    id?: string;
+    title: string;
+    description?: string;
+    category?: string;
+    event_date: string;
+  };
+}
+
+export function RecordForm({ onSuccess, onCancel, initialData }: RecordFormProps) {
+  const [isLoading, setIsLoading] = useState(false);
+  const [formData, setFormData] = useState({
+    title: initialData?.title || "",
+    description: initialData?.description || "",
+    category: initialData?.category || "",
+    event_date: initialData?.event_date || new Date().toISOString().split('T')[0],
+  });
+  const { toast } = useToast();
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+
+    try {
+      if (initialData?.id) {
+        // Update existing record
+        const { error } = await supabase
+          .from('records')
+          .update(formData)
+          .eq('id', initialData.id);
+
+        if (error) throw error;
+        
+        toast({
+          title: "Record updated",
+          description: "Your record has been successfully updated.",
+        });
+      } else {
+        // Create new record
+        const { error } = await supabase
+          .from('records')
+          .insert([formData]);
+
+        if (error) throw error;
+        
+        toast({
+          title: "Record created",
+          description: "Your new record has been successfully created.",
+        });
+      }
+
+      onSuccess?.();
+    } catch (error) {
+      console.error('Error saving record:', error);
+      toast({
+        title: "Error",
+        description: "Failed to save record. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <Card className="bg-gradient-card shadow-lg border-0">
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <CalendarIcon className="h-5 w-5 text-primary" />
+          {initialData?.id ? "Edit Record" : "New Record"}
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="title">Title *</Label>
+            <Input
+              id="title"
+              value={formData.title}
+              onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
+              placeholder="Enter record title"
+              required
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="category">Category</Label>
+            <Input
+              id="category"
+              value={formData.category}
+              onChange={(e) => setFormData(prev => ({ ...prev, category: e.target.value }))}
+              placeholder="e.g., Meeting, Milestone, Review"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="event_date">Event Date *</Label>
+            <Input
+              id="event_date"
+              type="date"
+              value={formData.event_date}
+              onChange={(e) => setFormData(prev => ({ ...prev, event_date: e.target.value }))}
+              required
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="description">Description</Label>
+            <Textarea
+              id="description"
+              value={formData.description}
+              onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+              placeholder="Enter detailed description..."
+              rows={4}
+            />
+          </div>
+
+          <div className="flex gap-2 pt-4">
+            <Button 
+              type="submit" 
+              disabled={isLoading}
+              variant="gradient"
+              className="flex-1"
+            >
+              <Save className="h-4 w-4 mr-2" />
+              {isLoading ? "Saving..." : "Save Record"}
+            </Button>
+            {onCancel && (
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={onCancel}
+                disabled={isLoading}
+              >
+                <X className="h-4 w-4 mr-2" />
+                Cancel
+              </Button>
+            )}
+          </div>
+        </form>
+      </CardContent>
+    </Card>
+  );
+}

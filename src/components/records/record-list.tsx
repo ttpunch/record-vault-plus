@@ -1,0 +1,158 @@
+import { useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Edit2, Trash2, Calendar, FileText } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+import { format } from "date-fns";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+
+interface Record {
+  id: string;
+  title: string;
+  description?: string;
+  category?: string;
+  event_date: string;
+  created_at: string;
+  updated_at: string;
+}
+
+interface RecordListProps {
+  records: Record[];
+  onEdit: (record: Record) => void;
+  onRecordDeleted: () => void;
+}
+
+export function RecordList({ records, onEdit, onRecordDeleted }: RecordListProps) {
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const { toast } = useToast();
+
+  const handleDelete = async (id: string) => {
+    setDeletingId(id);
+    
+    try {
+      const { error } = await supabase
+        .from('records')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Record deleted",
+        description: "The record has been successfully deleted.",
+      });
+      
+      onRecordDeleted();
+    } catch (error) {
+      console.error('Error deleting record:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete record. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
+  if (records.length === 0) {
+    return (
+      <Card className="bg-gradient-card shadow-lg border-0">
+        <CardContent className="flex flex-col items-center justify-center py-8">
+          <FileText className="h-12 w-12 text-muted-foreground mb-4" />
+          <p className="text-muted-foreground text-center">
+            No records found. Create your first record to get started.
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      {records.map((record) => (
+        <Card 
+          key={record.id} 
+          className="bg-gradient-card shadow-card hover:shadow-lg transition-all duration-300 hover:scale-[1.02] border-0"
+        >
+          <CardHeader className="pb-3">
+            <div className="flex items-start justify-between">
+              <div className="space-y-1">
+                <CardTitle className="text-lg font-semibold text-foreground">
+                  {record.title}
+                </CardTitle>
+                <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                  <div className="flex items-center gap-1">
+                    <Calendar className="h-4 w-4" />
+                    {format(new Date(record.event_date), 'MMM dd, yyyy')}
+                  </div>
+                  {record.category && (
+                    <Badge variant="secondary" className="bg-primary-light text-primary-foreground">
+                      {record.category}
+                    </Badge>
+                  )}
+                </div>
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => onEdit(record)}
+                  className="hover:bg-primary-light hover:text-primary"
+                >
+                  <Edit2 className="h-4 w-4" />
+                </Button>
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      disabled={deletingId === record.id}
+                      className="hover:bg-destructive/10 hover:text-destructive"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Delete Record</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        Are you sure you want to delete "{record.title}"? This action cannot be undone.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction
+                        onClick={() => handleDelete(record.id)}
+                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                      >
+                        Delete
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              </div>
+            </div>
+          </CardHeader>
+          {record.description && (
+            <CardContent className="pt-0">
+              <p className="text-muted-foreground">{record.description}</p>
+            </CardContent>
+          )}
+        </Card>
+      ))}
+    </div>
+  );
+}
