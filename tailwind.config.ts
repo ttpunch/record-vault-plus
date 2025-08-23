@@ -65,6 +65,19 @@ export default {
 					DEFAULT: 'hsl(var(--warning))',
 					foreground: 'hsl(var(--warning-foreground))'
 				},
+				purple: {
+					50: 'hsl(250 100% 99%)',
+					100: 'hsl(250 100% 97%)',
+					200: 'hsl(250 100% 94%)',
+					300: 'hsl(250 100% 90%)',
+					400: 'hsl(250 100% 85%)',
+					500: 'hsl(262 83% 58%)',
+					600: 'hsl(262 83% 50%)',
+					700: 'hsl(262 83% 42%)',
+					800: 'hsl(262 83% 35%)',
+					900: 'hsl(262 83% 28%)',
+					950: 'hsl(262 83% 20%)'
+				},
 				sidebar: {
 					DEFAULT: 'hsl(var(--sidebar-background))',
 					foreground: 'hsl(var(--sidebar-foreground))',

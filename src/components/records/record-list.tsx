@@ -2,10 +2,13 @@ import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Edit2, Trash2, Calendar, FileText } from "lucide-react";
+import { Edit2, Trash2, Calendar, FileText, Bell, History } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
+import { ReminderDialog } from "@/components/reminders/reminder-dialog";
+import { ReminderBadge } from "@/components/reminders/reminder-badge";
+import { AuditTrail } from "@/components/audit/audit-trail";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -26,6 +29,7 @@ interface Record {
   event_date: string;
   created_at: string;
   updated_at: string;
+  created_by: string;
 }
 
 interface RecordListProps {
@@ -85,7 +89,7 @@ export function RecordList({ records, onEdit, onRecordDeleted }: RecordListProps
       {records.map((record) => (
         <Card 
           key={record.id} 
-          className="bg-gradient-card shadow-card hover:shadow-lg transition-all duration-300 hover:scale-[1.02] border-0"
+          className="bg-gradient-to-br from-white to-purple-50 dark:from-gray-900 dark:to-purple-950 shadow-md hover:shadow-lg transition-all duration-300 hover:scale-[1.02] border border-purple-100 dark:border-purple-800"
         >
           <CardHeader className="pb-3">
             <div className="flex items-start justify-between">
@@ -99,13 +103,40 @@ export function RecordList({ records, onEdit, onRecordDeleted }: RecordListProps
                     {format(new Date(record.event_date), 'MMM dd, yyyy')}
                   </div>
                   {record.category && (
-                    <Badge variant="secondary" className="bg-primary-light text-primary-foreground">
+                    <Badge variant="secondary" className="bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200">
                       {record.category}
                     </Badge>
                   )}
+                  <ReminderBadge recordId={record.id} />
                 </div>
               </div>
               <div className="flex gap-2">
+                <ReminderDialog
+                  recordId={record.id}
+                  recordTitle={record.title}
+                  trigger={
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="hover:bg-purple-100 hover:text-purple-600 dark:hover:bg-purple-900"
+                    >
+                      <Bell className="h-4 w-4" />
+                    </Button>
+                  }
+                />
+                <AuditTrail
+                  recordId={record.id}
+                  trigger={
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="hover:bg-blue-100 hover:text-blue-600 dark:hover:bg-blue-900"
+                      title="View History"
+                    >
+                      <History className="h-4 w-4" />
+                    </Button>
+                  }
+                />
                 <Button
                   variant="ghost"
                   size="sm"

@@ -17,6 +17,7 @@ interface RecordFormProps {
     description?: string;
     category?: string;
     event_date: string;
+    created_by?: string;
   };
 }
 
@@ -76,10 +77,10 @@ export function RecordForm({ onSuccess, onCancel, initialData }: RecordFormProps
   };
 
   return (
-    <Card className="bg-gradient-card shadow-lg border-0">
+    <Card className="bg-gradient-to-br from-white to-purple-50 dark:from-gray-900 dark:to-purple-950 shadow-lg border border-purple-200 dark:border-purple-800">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <CalendarIcon className="h-5 w-5 text-primary" />
+          <CalendarIcon className="h-5 w-5 text-purple-600 dark:text-purple-400" />
           {initialData?.id ? "Edit Record" : "New Record"}
         </CardTitle>
       </CardHeader>

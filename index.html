@@ -15,6 +15,17 @@
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:site" content="@lovable_dev" />
     <meta name="twitter:image" content="https://lovable.dev/opengraph-image-p98pqg.png" />
+
+    <!-- Theme detection script to prevent flash of wrong theme -->
+    <script>
+      (function() {
+        const theme = localStorage.getItem('theme') || 'system';
+        const resolvedTheme = theme === 'system' 
+          ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+          : theme;
+        document.documentElement.classList.add(resolvedTheme);
+      })();
+    </script>
   </head>
 
   <body>

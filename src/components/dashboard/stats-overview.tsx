@@ -1,5 +1,6 @@
 import { StatCard } from "@/components/ui/stat-card";
 import { Calendar, Database, Clock, TrendingUp } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface StatsOverviewProps {
   totalRecords: number;
@@ -17,6 +18,7 @@ export function StatsOverview({ totalRecords, thisMonth, thisWeek, categories }:
         description="All recorded events"
         icon={Database}
         trend={{ value: 12, isPositive: true }}
+        className="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-950 dark:to-purple-900 border-purple-200 dark:border-purple-800"
       />
       <StatCard
         title="This Month"
@@ -24,6 +26,7 @@ export function StatsOverview({ totalRecords, thisMonth, thisWeek, categories }:
         description="Records added this month"
         icon={Calendar}
         trend={{ value: 8, isPositive: true }}
+        className="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-950 dark:to-purple-900 border-purple-200 dark:border-purple-800"
       />
       <StatCard
         title="This Week"
@@ -31,6 +34,7 @@ export function StatsOverview({ totalRecords, thisMonth, thisWeek, categories }:
         description="Recent activity"
         icon={Clock}
         trend={{ value: 5, isPositive: true }}
+        className="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-950 dark:to-purple-900 border-purple-200 dark:border-purple-800"
       />
       <StatCard
         title="Categories"
@@ -38,6 +42,7 @@ export function StatsOverview({ totalRecords, thisMonth, thisWeek, categories }:
         description="Unique categories"
         icon={TrendingUp}
         trend={{ value: 2, isPositive: true }}
+        className="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-950 dark:to-purple-900 border-purple-200 dark:border-purple-800"
       />
     </div>
   );
