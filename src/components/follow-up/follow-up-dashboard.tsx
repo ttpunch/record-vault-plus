@@ -38,7 +38,7 @@ export const FollowUpDashboard: React.FC<FollowUpDashboardProps> = ({ className 
           time_limit,
           is_active,
           record_id,
-          records!inner(title as record_title)
+          records!inner(record_title:title)
         `)
         .eq('is_active', true)
         .gte('reminder_date', new Date().toISOString().split('T')[0])
@@ -68,7 +68,7 @@ export const FollowUpDashboard: React.FC<FollowUpDashboardProps> = ({ className 
           id: reminder.id,
           type: isOverdue ? 'overdue' : 'reminder',
           title: reminder.title,
-          description: reminder.description || `Reminder for: ${reminder.record_title}`,
+          description: reminder.description || `Reminder for: ${reminder.records.record_title}`,
           due_date: dueDate.toISOString(),
           priority: getPriorityFromTimeLimit(reminder.time_limit),
           status: isOverdue ? 'overdue' : 'pending',
@@ -78,11 +78,12 @@ export const FollowUpDashboard: React.FC<FollowUpDashboardProps> = ({ className 
       });
 
       setFollowUps(followUpItems);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error fetching follow-ups:', error);
+      const errorMessage = error.message || "An unknown error occurred.";
       toast({
-        title: "Error",
-        description: "Failed to load follow-ups.",
+        title: "Error Loading Follow-ups",
+        description: `Failed to load follow-ups: ${errorMessage}`,
         variant: "destructive",
       });
     } finally {
