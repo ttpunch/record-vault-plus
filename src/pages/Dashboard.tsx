@@ -7,6 +7,7 @@ import { RecordList } from "@/components/records/record-list";
 import { SearchBar } from "@/components/search/search-bar";
 import { SearchSummary } from "@/components/search/search-summary";
 import { supabase } from "@/integrations/supabase/client";
+import type { Record } from "@/types/records";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import {
@@ -25,16 +26,6 @@ import { useKeyboardShortcuts } from "@/hooks/use-keyboard-shortcuts";
 import { reminderService } from "@/services/reminder-service";
 import { FollowUpDashboard } from "@/components/follow-up/follow-up-dashboard";
 
-interface Record {
-  id: string;
-  title: string;
-  description?: string;
-  category?: string;
-  event_date: string;
-  created_at: string;
-  updated_at: string;
-  created_by: string;
-}
 
 export default function Dashboard() {
   const [records, setRecords] = useState<Record[]>([]);

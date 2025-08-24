@@ -1,15 +1,5 @@
 import { format } from "date-fns";
-
-interface Record {
-  id: string;
-  title: string;
-  description?: string;
-  category?: string;
-  event_date: string;
-  created_at: string;
-  updated_at: string;
-  created_by: string;
-}
+import type { Record } from "@/types/records";
 
 interface SearchFilters {
   category?: string;
