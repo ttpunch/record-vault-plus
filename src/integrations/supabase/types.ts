@@ -14,11 +14,52 @@ export type Database = {
   }
   public: {
     Tables: {
+      audit_trail: {
+        Row: {
+          action: string
+          changed_fields: string[] | null
+          id: string
+          ip_address: string | null
+          new_data: Json | null
+          old_data: Json | null
+          record_id: string
+          table_name: string
+          timestamp: string
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          action: string
+          changed_fields?: string[] | null
+          id?: string
+          ip_address?: string | null
+          new_data?: Json | null
+          old_data?: Json | null
+          record_id: string
+          table_name: string
+          timestamp?: string
+          user_agent?: string | null
+          user_id?: string
+        }
+        Update: {
+          action?: string
+          changed_fields?: string[] | null
+          id?: string
+          ip_address?: string | null
+          new_data?: Json | null
+          old_data?: Json | null
+          record_id?: string
+          table_name?: string
+          timestamp?: string
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       records: {
         Row: {
           category: string | null
           created_at: string
-          created_by: string
           description: string | null
           event_date: string
           id: string
@@ -28,7 +69,6 @@ export type Database = {
         Insert: {
           category?: string | null
           created_at?: string
-          created_by?: string
           description?: string | null
           event_date?: string
           id?: string
@@ -38,7 +78,6 @@ export type Database = {
         Update: {
           category?: string | null
           created_at?: string
-          created_by?: string
           description?: string | null
           event_date?: string
           id?: string
@@ -49,46 +88,46 @@ export type Database = {
       }
       reminders: {
         Row: {
-          id: string
-          record_id: string
-          title: string
+          actions: string[]
+          created_at: string
+          created_by: string
           description: string | null
+          id: string
+          is_active: boolean
+          record_id: string
           reminder_date: string
           reminder_time: string
           time_limit: string
-          actions: string[]
-          is_active: boolean
-          created_at: string
+          title: string
           updated_at: string
-          created_by: string
         }
         Insert: {
-          id?: string
-          record_id: string
-          title: string
+          actions?: string[]
+          created_at?: string
+          created_by?: string
           description?: string | null
+          id?: string
+          is_active?: boolean
+          record_id: string
           reminder_date: string
           reminder_time: string
           time_limit: string
-          actions?: string[]
-          is_active?: boolean
-          created_at?: string
+          title: string
           updated_at?: string
-          created_by?: string
         }
         Update: {
-          id?: string
-          record_id?: string
-          title?: string
+          actions?: string[]
+          created_at?: string
+          created_by?: string
           description?: string | null
+          id?: string
+          is_active?: boolean
+          record_id?: string
           reminder_date?: string
           reminder_time?: string
           time_limit?: string
-          actions?: string[]
-          is_active?: boolean
-          created_at?: string
+          title?: string
           updated_at?: string
-          created_by?: string
         }
         Relationships: [
           {
@@ -97,7 +136,7 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "records"
             referencedColumns: ["id"]
-          }
+          },
         ]
       }
     }
@@ -105,7 +144,20 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      create_audit_entry: {
+        Args: {
+          p_action: string
+          p_new_data?: Json
+          p_old_data?: Json
+          p_record_id: string
+          p_table_name: string
+        }
+        Returns: undefined
+      }
+      get_changed_fields: {
+        Args: { new_data: Json; old_data: Json }
+        Returns: string[]
+      }
     }
     Enums: {
       [_ in never]: never
@@ -238,30 +290,3 @@ export const Constants = {
     Enums: {},
   },
 } as const
-
-// Custom types for additional functionality
-export interface AuditTrail {
-  id: string;
-  table_name: string;
-  record_id: string;
-  action: 'INSERT' | 'UPDATE' | 'DELETE';
-  old_data?: any;
-  new_data?: any;
-  changed_fields?: string[];
-  user_id: string;
-  timestamp: string;
-  ip_address?: string;
-  user_agent?: string;
-}
-
-export interface FollowUpItem {
-  id: string;
-  type: 'reminder' | 'record' | 'overdue';
-  title: string;
-  description?: string;
-  due_date: string;
-  priority: 'low' | 'medium' | 'high';
-  status: 'pending' | 'completed' | 'overdue';
-  record_id?: string;
-  reminder_id?: string;
-}

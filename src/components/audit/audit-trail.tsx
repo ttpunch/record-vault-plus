@@ -9,9 +9,11 @@ import { Separator } from '@/components/ui/separator';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Calendar, Clock, User, FileText, Bell, Filter, Search, RefreshCw } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-import { type AuditTrail } from '@/integrations/supabase/types';
+import { Database } from '@/integrations/supabase/types';
 import { format } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
+
+type AuditTrail = Database['public']['Tables']['audit_trail']['Row'];
 
 interface AuditTrailProps {
   recordId?: string;
@@ -29,35 +31,31 @@ export const AuditTrailComponent: React.FC<AuditTrailProps> = ({ recordId, class
   const fetchAuditTrail = async () => {
     try {
       setLoading(true);
-      // Mock audit trail data since audit_trail table doesn't exist yet
-      const mockData: AuditTrail[] = [
-        {
-          id: '1',
-          table_name: 'records',
-          record_id: recordId || 'test-id',
-          action: 'INSERT',
-          user_id: 'user-1',
-          timestamp: new Date().toISOString(),
-          changed_fields: ['title', 'description']
-        },
-        {
-          id: '2',
-          table_name: 'records',
-          record_id: recordId || 'test-id',
-          action: 'UPDATE',
-          user_id: 'user-1',
-          timestamp: new Date(Date.now() - 60000).toISOString(),
-          changed_fields: ['description']
-        }
-      ];
       
-      setAuditEntries(recordId ? mockData : []);
-      
-      toast({
-        title: "Audit Trail Not Available",
-        description: "The audit trail feature hasn't been set up yet. Showing sample data.",
-        variant: "default",
-      });
+      let query = supabase
+        .from('audit_trail')
+        .select('*')
+        .order('timestamp', { ascending: false })
+        .limit(100);
+
+      if (recordId) {
+        query = query.eq('record_id', recordId);
+      }
+
+      const { data, error } = await query;
+
+      if (error) {
+        console.error('Error fetching audit trail:', error);
+        toast({
+          title: "Error Loading Audit Trail",
+          description: "Failed to load audit trail data.",
+          variant: "destructive",
+        });
+        setAuditEntries([]);
+        return;
+      }
+
+      setAuditEntries(data || []);
     } catch (error) {
       console.error('Error fetching audit trail:', error);
       toast({

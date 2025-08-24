@@ -6,10 +6,22 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Calendar, Clock, Bell, FileText, AlertTriangle, CheckCircle, ArrowRight, Plus } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-import { FollowUpItem } from '@/integrations/supabase/types';
+import { Database } from '@/integrations/supabase/types';
 import { format, addDays, addWeeks, addMonths, isToday, isTomorrow, isThisWeek, isThisMonth, parseISO } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
+
+interface FollowUpItem {
+  id: string;
+  type: 'reminder' | 'overdue';
+  title: string;
+  description: string;
+  due_date: string;
+  priority: 'low' | 'medium' | 'high';
+  status: 'pending' | 'overdue' | 'completed';
+  record_id?: string;
+  reminder_id?: string;
+}
 
 interface FollowUpDashboardProps {
   className?: string;
