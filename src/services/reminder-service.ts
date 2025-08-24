@@ -159,16 +159,17 @@ class ReminderService {
       icon: '/favicon.ico',
       tag: reminder.id,
       requireInteraction: true,
-      actions: [
-        {
-          action: 'view',
-          title: 'View Record'
-        },
-        {
-          action: 'dismiss',
-          title: 'Dismiss'
-        }
-      ]
+      // Note: Actions are not supported in all browsers
+      // actions: [
+      //   {
+      //     action: 'view',
+      //     title: 'View Record'
+      //   },
+      //   {
+      //     action: 'dismiss',
+      //     title: 'Dismiss'
+      //   }
+      // ]
     });
 
     notification.onclick = () => {

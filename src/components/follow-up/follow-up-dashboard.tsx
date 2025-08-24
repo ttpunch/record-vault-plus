@@ -202,149 +202,132 @@ export const FollowUpDashboard: React.FC<FollowUpDashboardProps> = ({ className 
   };
 
   return (
-    <Card className={className}>
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          <div>
-            <CardTitle className="flex items-center gap-2">
-              <Bell className="h-5 w-5" />
-              Follow-up Dashboard
-            </CardTitle>
-            <CardDescription>
-              Track your upcoming tasks, reminders, and follow-ups
-            </CardDescription>
+    <div className={`bg-gradient-to-br from-background via-background to-muted/20 rounded-xl border border-border/60 backdrop-blur-sm ${className}`}>
+      <div className="p-6">
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-primary/10 rounded-lg">
+              <Bell className="h-5 w-5 text-primary" />
+            </div>
+            <div>
+              <h2 className="text-xl font-semibold text-foreground">Follow-ups</h2>
+              <p className="text-sm text-muted-foreground">Track your tasks and reminders</p>
+            </div>
           </div>
           <Button
-            variant="outline"
+            variant="ghost"
             size="sm"
             onClick={fetchFollowUps}
             disabled={loading}
+            className="h-9 px-3"
           >
-            <Plus className="h-4 w-4 mr-2" />
-            Refresh
+            <Plus className="h-4 w-4" />
           </Button>
         </div>
-      </CardHeader>
-      <CardContent>
+
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-6">
-            <TabsTrigger value="today" className="flex items-center gap-1">
-              Today
-              {getTabCount('today') > 0 && (
-                <Badge variant="secondary" className="ml-1 h-5 w-5 p-0 text-xs">
-                  {getTabCount('today')}
-                </Badge>
-              )}
-            </TabsTrigger>
-            <TabsTrigger value="tomorrow" className="flex items-center gap-1">
-              Tomorrow
-              {getTabCount('tomorrow') > 0 && (
-                <Badge variant="secondary" className="ml-1 h-5 w-5 p-0 text-xs">
-                  {getTabCount('tomorrow')}
-                </Badge>
-              )}
-            </TabsTrigger>
-            <TabsTrigger value="this-week" className="flex items-center gap-1">
-              This Week
-              {getTabCount('this-week') > 0 && (
-                <Badge variant="secondary" className="ml-1 h-5 w-5 p-0 text-xs">
-                  {getTabCount('this-week')}
-                </Badge>
-              )}
-            </TabsTrigger>
-            <TabsTrigger value="this-month" className="flex items-center gap-1">
-              This Month
-              {getTabCount('this-month') > 0 && (
-                <Badge variant="secondary" className="ml-1 h-5 w-5 p-0 text-xs">
-                  {getTabCount('this-month')}
-                </Badge>
-              )}
-            </TabsTrigger>
-            <TabsTrigger value="overdue" className="flex items-center gap-1">
-              Overdue
-              {getTabCount('overdue') > 0 && (
-                <Badge variant="destructive" className="ml-1 h-5 w-5 p-0 text-xs">
-                  {getTabCount('overdue')}
-                </Badge>
-              )}
-            </TabsTrigger>
-            <TabsTrigger value="all" className="flex items-center gap-1">
-              All
-              {followUps.length > 0 && (
-                <Badge variant="secondary" className="ml-1 h-5 w-5 p-0 text-xs">
-                  {followUps.length}
-                </Badge>
-              )}
-            </TabsTrigger>
+          <TabsList className="grid w-full grid-cols-6 bg-muted/50 h-11">
+            {[
+              { value: 'today', label: 'Today' },
+              { value: 'tomorrow', label: 'Tomorrow' },
+              { value: 'this-week', label: 'Week' },
+              { value: 'this-month', label: 'Month' },
+              { value: 'overdue', label: 'Overdue', variant: 'destructive' as const },
+              { value: 'all', label: 'All' }
+            ].map(({ value, label, variant }) => (
+              <TabsTrigger key={value} value={value} className="text-xs font-medium">
+                <span className="hidden sm:inline">{label}</span>
+                <span className="sm:hidden">{label.slice(0, 3)}</span>
+                {getTabCount(value) > 0 && (
+                  <Badge 
+                    variant={variant || "secondary"} 
+                    className="ml-1 h-4 w-4 p-0 text-xs rounded-full"
+                  >
+                    {getTabCount(value)}
+                  </Badge>
+                )}
+              </TabsTrigger>
+            ))}
           </TabsList>
 
           {['today', 'tomorrow', 'this-week', 'this-month', 'overdue', 'all'].map((period) => (
             <TabsContent key={period} value={period} className="mt-4">
-              <ScrollArea className="h-80">
+              <div className="max-h-96 overflow-y-auto">
                 {loading ? (
-                  <div className="flex items-center justify-center py-8">
-                    <Clock className="h-6 w-6 animate-spin text-purple-500" />
-                    <span className="ml-2">Loading follow-ups...</span>
+                  <div className="flex items-center justify-center py-12">
+                    <div className="flex items-center gap-3">
+                      <Clock className="h-5 w-5 animate-spin text-primary" />
+                      <span className="text-sm text-muted-foreground">Loading...</span>
+                    </div>
                   </div>
                 ) : getFollowUpsByPeriod(period).length === 0 ? (
-                  <div className="text-center py-8 text-muted-foreground">
-                    <Bell className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                    <p>No follow-ups for {period.replace('-', ' ')}</p>
-                    <p className="text-sm">You're all caught up!</p>
+                  <div className="text-center py-12">
+                    <div className="p-3 bg-muted/30 rounded-full w-fit mx-auto mb-3">
+                      <Bell className="h-8 w-8 text-muted-foreground/50" />
+                    </div>
+                    <p className="text-sm font-medium text-muted-foreground">No {period.replace('-', ' ')} follow-ups</p>
+                    <p className="text-xs text-muted-foreground/70 mt-1">You're all caught up!</p>
                   </div>
                 ) : (
-                  <div className="space-y-3">
+                  <div className="space-y-2">
                     {getFollowUpsByPeriod(period).map((item) => (
-                      <div key={item.id} className="border rounded-lg p-4 hover:bg-muted/50 transition-colors">
-                        <div className="flex items-start justify-between">
-                          <div className="flex items-start gap-3 flex-1">
-                            {getStatusIcon(item.status)}
-                            <div className="flex-1">
+                      <div key={item.id} className="group relative bg-card/50 border border-border/40 rounded-lg p-4 hover:bg-card hover:border-border transition-all duration-200 hover:shadow-sm">
+                        <div className="flex items-start justify-between gap-4">
+                          <div className="flex items-start gap-3 flex-1 min-w-0">
+                            <div className="mt-0.5">
+                              {getStatusIcon(item.status)}
+                            </div>
+                            <div className="flex-1 min-w-0">
                               <div className="flex items-center gap-2 mb-1">
-                                <h4 className="font-medium">{item.title}</h4>
-                                <Badge className={getPriorityColor(item.priority)}>
+                                <h4 className="font-medium text-sm truncate">{item.title}</h4>
+                                <Badge 
+                                  variant="outline" 
+                                  className={`text-xs h-5 ${getPriorityColor(item.priority)} border-0`}
+                                >
                                   {item.priority}
                                 </Badge>
                                 {item.status === 'overdue' && (
-                                  <Badge variant="destructive">Overdue</Badge>
+                                  <Badge variant="destructive" className="text-xs h-5">
+                                    Overdue
+                                  </Badge>
                                 )}
                               </div>
-                              <p className="text-sm text-muted-foreground mb-2">
+                              <p className="text-xs text-muted-foreground mb-2 line-clamp-2">
                                 {item.description}
                               </p>
-                              <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                              <div className="flex items-center gap-3 text-xs text-muted-foreground">
                                 <div className="flex items-center gap-1">
-                                  <Calendar className="h-4 w-4" />
+                                  <Calendar className="h-3 w-3" />
                                   <span>{formatDueDate(item.due_date)}</span>
                                 </div>
                                 {item.type === 'reminder' && (
                                   <div className="flex items-center gap-1">
-                                    <Bell className="h-4 w-4" />
+                                    <Bell className="h-3 w-3" />
                                     <span>Reminder</span>
                                   </div>
                                 )}
                               </div>
                             </div>
                           </div>
-                          <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                             {item.record_id && (
                               <Button
-                                variant="outline"
+                                variant="ghost"
                                 size="sm"
                                 onClick={() => handleViewRecord(item.record_id!)}
+                                className="h-8 w-8 p-0"
                               >
-                                <FileText className="h-4 w-4 mr-1" />
-                                View
+                                <FileText className="h-3 w-3" />
                               </Button>
                             )}
                             {item.status !== 'completed' && (
                               <Button
-                                variant="outline"
+                                variant="ghost"
                                 size="sm"
                                 onClick={() => handleMarkComplete(item.id)}
+                                className="h-8 w-8 p-0"
                               >
-                                <CheckCircle className="h-4 w-4 mr-1" />
-                                Complete
+                                <CheckCircle className="h-3 w-3" />
                               </Button>
                             )}
                           </div>
@@ -353,11 +336,11 @@ export const FollowUpDashboard: React.FC<FollowUpDashboardProps> = ({ className 
                     ))}
                   </div>
                 )}
-              </ScrollArea>
+              </div>
             </TabsContent>
           ))}
         </Tabs>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 };

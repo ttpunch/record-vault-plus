@@ -8,7 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { ReminderDialog } from "@/components/reminders/reminder-dialog";
 import { ReminderBadge } from "@/components/reminders/reminder-badge";
-import { AuditTrail } from "@/components/audit/audit-trail";
+import { AuditTrailComponent } from "@/components/audit/audit-trail";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -124,7 +124,7 @@ export function RecordList({ records, onEdit, onRecordDeleted }: RecordListProps
                     </Button>
                   }
                 />
-                <AuditTrail
+                <AuditTrailComponent
                   recordId={record.id}
                   trigger={
                     <Button
