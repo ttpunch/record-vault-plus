@@ -25,7 +25,14 @@ import { searchRecords, getUniqueCategories } from "@/lib/search";
 import { useKeyboardShortcuts } from "@/hooks/use-keyboard-shortcuts";
 import { reminderService } from "@/services/reminder-service";
 import { FollowUpDashboard } from "@/components/follow-up/follow-up-dashboard";
-
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 export default function Dashboard() {
   const [records, setRecords] = useState<Record[]>([]);
@@ -34,6 +41,7 @@ export default function Dashboard() {
   const [editingRecord, setEditingRecord] = useState<Record | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [searchFilters, setSearchFilters] = useState({});
+  const [pendingFollowUps, setPendingFollowUps] = useState(0);
   const { toast } = useToast();
   const { user, signOut } = useAuth();
 
@@ -69,6 +77,18 @@ export default function Dashboard() {
       reminderService.stopReminderChecks();
     };
   }, []);
+
+  useEffect(() => {
+    const countPendingFollowUps = () => {
+      // This is a placeholder - you'll need to implement the actual logic
+      // to count pending follow-ups from your data
+      const count = 0; // Replace with actual count
+      setPendingFollowUps(count);
+    };
+    
+    countPendingFollowUps();
+    // Add any dependencies that should trigger a recount
+  }, [records]); // Add any other dependencies that affect follow-up count
 
   const handleFormSuccess = () => {
     setShowForm(false);
@@ -277,14 +297,60 @@ export default function Dashboard() {
           />
         </div>
 
-        {/* Follow-up Dashboard */}
-        <div className="mb-8">
-          <FollowUpDashboard />
-        </div>
+        {/* Main Content Tabs */}
+        <Tabs defaultValue="records" className="w-full">
+          <TabsList className="grid w-full grid-cols-2 mb-6 max-w-md">
+            <TabsTrigger value="records">Records</TabsTrigger>
+            <TabsTrigger value="follow-ups" className="relative">
+              Follow-ups
+              {pendingFollowUps > 0 && (
+                <Badge 
+                  variant="destructive" 
+                  className="absolute -right-6 -top-2 h-5 w-5 flex items-center justify-center p-0"
+                >
+                  {pendingFollowUps}
+                </Badge>
+              )}
+            </TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="records">
+            {/* Existing Records List */}
+            <div>
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-2xl font-semibold text-foreground">
+                  {searchQuery || Object.keys(searchFilters).length > 0 ? 'Search Results' : 'Recent Records'}
+                </h2>
+                {(searchQuery || Object.keys(searchFilters).length > 0) && (
+                  <span className="text-sm text-muted-foreground">
+                    {filteredRecords.length} of {records.length} records
+                  </span>
+                )}
+              </div>
+              <RecordList
+                records={filteredRecords}
+                onEdit={handleEdit}
+                onRecordDeleted={fetchRecords}
+              />
+            </div>
+          </TabsContent>
 
-        {/* Form */}
-        {showForm && (
-          <div className="mb-8">
+          <TabsContent value="follow-ups">
+            {/* Follow-up Dashboard */}
+            <div className="mb-8">
+              <FollowUpDashboard />
+            </div>
+          </TabsContent>
+        </Tabs>
+
+        {/* Modal Form */}
+        <Dialog open={showForm} onOpenChange={setShowForm}>
+          <DialogContent className="sm:max-w-[625px]">
+            <DialogHeader>
+              <DialogTitle>
+                {editingRecord ? 'Edit Record' : 'Create New Record'}
+              </DialogTitle>
+            </DialogHeader>
             <RecordForm
               onSuccess={handleFormSuccess}
               onCancel={handleFormCancel}
@@ -297,27 +363,8 @@ export default function Dashboard() {
                 created_by: editingRecord.created_by,
               } : undefined}
             />
-          </div>
-        )}
-
-        {/* Records List */}
-        <div>
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-2xl font-semibold text-foreground">
-              {searchQuery || Object.keys(searchFilters).length > 0 ? 'Search Results' : 'Recent Records'}
-            </h2>
-            {(searchQuery || Object.keys(searchFilters).length > 0) && (
-              <span className="text-sm text-muted-foreground">
-                {filteredRecords.length} of {records.length} records
-              </span>
-            )}
-          </div>
-          <RecordList
-            records={filteredRecords}
-            onEdit={handleEdit}
-            onRecordDeleted={fetchRecords}
-          />
-        </div>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );

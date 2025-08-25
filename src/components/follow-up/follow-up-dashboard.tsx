@@ -25,9 +25,13 @@ interface FollowUpItem {
 
 interface FollowUpDashboardProps {
   className?: string;
+  onFollowUpCountChange?: (count: number) => void;
 }
 
-export const FollowUpDashboard: React.FC<FollowUpDashboardProps> = ({ className }) => {
+export const FollowUpDashboard: React.FC<FollowUpDashboardProps> = ({ 
+  className,
+  onFollowUpCountChange 
+}) => {
   const [followUps, setFollowUps] = useState<FollowUpItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('today');
@@ -65,18 +69,21 @@ export const FollowUpDashboard: React.FC<FollowUpDashboardProps> = ({ className 
             variant: "destructive",
           });
           setFollowUps([]);
+          onFollowUpCountChange?.(0);
           return;
         }
         throw remindersError;
       }
 
       // Transform reminders into follow-up items
-      const followUpItems: FollowUpItem[] = (reminders || []).map(reminder => {
+      const followUpItems: FollowUpItem[] = [];
+      const now = new Date();
+      
+      (reminders || []).forEach(reminder => {
         const dueDate = new Date(`${reminder.reminder_date}T${reminder.reminder_time}`);
-        const now = new Date();
         const isOverdue = dueDate < now;
         
-        return {
+        followUpItems.push({
           id: reminder.id,
           type: isOverdue ? 'overdue' : 'reminder',
           title: reminder.title,
@@ -86,10 +93,18 @@ export const FollowUpDashboard: React.FC<FollowUpDashboardProps> = ({ className 
           status: isOverdue ? 'overdue' : 'pending',
           record_id: reminder.record_id,
           reminder_id: reminder.id,
-        };
+        });
       });
 
       setFollowUps(followUpItems);
+      
+      // Calculate and report pending count (overdue + pending)
+      const pendingCount = followUpItems.filter(
+        item => item.status === 'overdue' || item.status === 'pending'
+      ).length;
+      
+      onFollowUpCountChange?.(pendingCount);
+      
     } catch (error: any) {
       console.error('Error fetching follow-ups:', error);
       const errorMessage = error.message || "An unknown error occurred.";
@@ -98,6 +113,7 @@ export const FollowUpDashboard: React.FC<FollowUpDashboardProps> = ({ className 
         description: `Failed to load follow-ups: ${errorMessage}`,
         variant: "destructive",
       });
+      onFollowUpCountChange?.(0);
     } finally {
       setLoading(false);
     }
