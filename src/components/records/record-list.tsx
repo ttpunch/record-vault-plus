@@ -93,9 +93,9 @@ export function RecordList({ records, onEdit, onRecordDeleted }: RecordListProps
                     <Calendar className="h-4 w-4" />
                     {format(new Date(record.event_date), 'MMM dd, yyyy')}
                   </div>
-                  {record.category && (
+                  {record.categories?.name && (
                     <Badge variant="secondary" className="bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200">
-                      {record.category}
+                      {record.categories.name}
                     </Badge>
                   )}
                   <ReminderBadge recordId={record.id} />
@@ -168,9 +168,20 @@ export function RecordList({ records, onEdit, onRecordDeleted }: RecordListProps
               </div>
             </div>
           </CardHeader>
-          {record.description && (
+          {(record.description || record.notes) && (
             <CardContent className="pt-0">
-              <p className="text-muted-foreground">{record.description}</p>
+              {record.description && (
+                <div 
+                  className="prose dark:prose-invert max-w-none text-sm text-muted-foreground"
+                  dangerouslySetInnerHTML={{ __html: record.description }}
+                />
+              )}
+              {record.notes && (
+                <div className="mt-4">
+                  <h4 className="font-semibold text-sm text-foreground">Notes</h4>
+                  <p className="text-sm text-muted-foreground whitespace-pre-wrap">{record.notes}</p>
+                </div>
+              )}
             </CardContent>
           )}
         </Card>

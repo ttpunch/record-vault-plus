@@ -1,12 +1,19 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { RichTextEditor } from "@/components/ui/rich-text-editor";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CalendarIcon, Save, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+
+interface Category {
+  id: string;
+  name: string;
+}
 
 interface RecordFormProps {
   onSuccess?: () => void;
@@ -15,32 +22,62 @@ interface RecordFormProps {
     id?: string;
     title: string;
     description?: string;
-    category?: string;
+    category_id?: string;
+    categories?: { id: string; name: string } | null;
     event_date: string;
     created_by?: string;
+    notes?: string | null;
   };
 }
 
 export function RecordForm({ onSuccess, onCancel, initialData }: RecordFormProps) {
   const [isLoading, setIsLoading] = useState(false);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [formData, setFormData] = useState({
     title: initialData?.title || "",
     description: initialData?.description || "",
-    category: initialData?.category || "",
+    category_id: initialData?.categories?.id || "",
     event_date: initialData?.event_date || new Date().toISOString().split('T')[0],
+    notes: initialData?.notes || "",
   });
   const { toast } = useToast();
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      const { data, error } = await supabase
+        .from('categories')
+        .select('*')
+        .order('name');
+      
+      if (error) {
+        console.error('Error fetching categories:', error);
+        return;
+      }
+      
+      setCategories(data || []);
+    };
+
+    fetchCategories();
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
     try {
+      const recordData = {
+        title: formData.title,
+        description: formData.description,
+        category_id: formData.category_id || null,
+        event_date: formData.event_date,
+        notes: formData.notes,
+      };
+
       if (initialData?.id) {
         // Update existing record
         const { error } = await supabase
           .from('records')
-          .update(formData)
+          .update(recordData)
           .eq('id', initialData.id);
 
         if (error) throw error;
@@ -53,7 +90,7 @@ export function RecordForm({ onSuccess, onCancel, initialData }: RecordFormProps
         // Create new record
         const { error } = await supabase
           .from('records')
-          .insert([formData]);
+          .insert([recordData]);
 
         if (error) throw error;
         
@@ -99,12 +136,21 @@ export function RecordForm({ onSuccess, onCancel, initialData }: RecordFormProps
 
           <div className="space-y-2">
             <Label htmlFor="category">Category</Label>
-            <Input
-              id="category"
-              value={formData.category}
-              onChange={(e) => setFormData(prev => ({ ...prev, category: e.target.value }))}
-              placeholder="e.g., Meeting, Milestone, Review"
-            />
+            <Select
+              value={formData.category_id}
+              onValueChange={(value) => setFormData(prev => ({ ...prev, category_id: value }))}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select a category" />
+              </SelectTrigger>
+              <SelectContent>
+                {categories.map((category) => (
+                  <SelectItem key={category.id} value={category.id}>
+                    {category.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="space-y-2">
@@ -125,6 +171,16 @@ export function RecordForm({ onSuccess, onCancel, initialData }: RecordFormProps
               onChange={(value) => setFormData(prev => ({ ...prev, description: value }))}
               placeholder="Enter detailed description..."
               className="min-h-[200px]"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="notes">Notes</Label>
+            <Textarea
+              id="notes"
+              value={formData.notes}
+              onChange={(e) => setFormData(prev => ({ ...prev, notes: e.target.value }))}
+              placeholder="Add any notes or reasons for updates..."
             />
           </div>
 

@@ -27,6 +27,8 @@ import { reminderService } from "@/services/reminder-service";
 import { FollowUpDashboard } from "@/components/follow-up/follow-up-dashboard";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
+import { RecordsPrintView } from '@/components/export/records-print-view';
+import { renderToStaticMarkup } from 'react-dom/server';
 import {
   Dialog,
   DialogContent,
@@ -49,11 +51,16 @@ export default function Dashboard() {
     try {
       const { data, error } = await supabase
         .from('records')
-        .select('*')
+        .select(`
+          *,
+          categories (
+            name
+          )
+        `)
         .order('event_date', { ascending: false });
 
       if (error) throw error;
-      setRecords(data || []);
+      setRecords(data as Record[] || []);
     } catch (error) {
       console.error('Error fetching records:', error);
       toast({
@@ -111,15 +118,16 @@ export default function Dashboard() {
     const fileName = searchQuery || Object.keys(searchFilters).length > 0 ? 'filtered_records.csv' : 'all_records.csv';
     
     const csvContent = [
-      ['Title', 'Category', 'Event Date', 'Description'],
+      ['Title', 'Category', 'Event Date', 'Description', 'Notes'],
       ...recordsToExport.map(record => [
         record.title,
-        record.category || '',
+        record.categories?.name || '',
         record.event_date,
-        record.description || ''
+        record.description || '',
+        record.notes || ''
       ])
     ]
-      .map(row => row.map(cell => `"${cell}"`).join(','))
+      .map(row => row.map(cell => `"${cell.replace(/"/g, '""')}"`).join(','))
       .join('\n');
 
     const blob = new Blob([csvContent], { type: 'text/csv' });
@@ -134,6 +142,15 @@ export default function Dashboard() {
       title: "Export complete",
       description: `${recordsToExport.length} records have been exported to CSV.`,
     });
+  };
+
+  const handleExportToPdf = () => {
+    const printWindow = window.open('', '_blank');
+    if (printWindow) {
+      const printContent = renderToStaticMarkup(<RecordsPrintView records={records} />);
+      printWindow.document.write(printContent);
+      printWindow.document.close();
+    }
   };
 
   const handleSignOut = async () => {
@@ -191,7 +208,7 @@ export default function Dashboard() {
     return recordDate >= weekAgo;
   }).length;
 
-  const categoryCount = new Set(filteredRecords.map(r => r.category).filter(Boolean)).size;
+  const categoryCount = new Set(filteredRecords.map(r => r.categories?.name).filter(Boolean)).size;
 
   if (isLoading) {
     return (
@@ -227,6 +244,13 @@ export default function Dashboard() {
               >
                 <Download className="h-4 w-4 mr-2" />
                 Export {searchQuery || Object.keys(searchFilters).length > 0 ? 'Filtered' : 'All'}
+              </Button>
+              <Button
+                variant="outline"
+                onClick={handleExportToPdf}
+              >
+                <Download className="h-4 w-4 mr-2" />
+                Export to PDF
               </Button>
               <Button
                 variant="gradient"
@@ -355,12 +379,8 @@ export default function Dashboard() {
               onSuccess={handleFormSuccess}
               onCancel={handleFormCancel}
               initialData={editingRecord ? {
-                id: editingRecord.id,
-                title: editingRecord.title,
-                description: editingRecord.description,
-                category: editingRecord.category,
-                event_date: editingRecord.event_date,
-                created_by: editingRecord.created_by,
+                ...editingRecord,
+                category: editingRecord.categories?.name,
               } : undefined}
             />
           </DialogContent>

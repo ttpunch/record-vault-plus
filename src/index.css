@@ -179,3 +179,9 @@
     background: hsl(var(--muted-foreground) / 0.5);
   }
 }
+
+@media print {
+  .no-print {
+    display: none !important;
+  }
+}
